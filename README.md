@@ -43,39 +43,48 @@ $$\frac{dx_i}{dt} = y_i, \qquad \frac{dy_i}{dt} = -\Big(1 - a(t)\Big) x_i + c_0 
 
 ```mermaid
 flowchart TD
-    subgraph IN["1. TẦNG TIẾP NHẬN BÀI TOÁN (FRONTEND DSL)"]
-        F1["crates/frontend-dsl<br/>• ProblemBuilder: Ràng buộc logic nhị phân (ExactOne, 3-SAT, And, Or, Xor)<br/>• QuantifiedProblemBuilder: Đối kháng Minimax Game Theory min_x max_y H<br/>• HpProteinModel: Gấp cuộn Protein 2D HP Lattice"]
+    subgraph S_FRONT["1. TẦNG TIẾP NHẬN BÀI TOÁN (FRONTEND DSL)"]
+        F1["ProblemBuilder & QuantifiedProblemBuilder<br/>Ràng buộc logic, 3-SAT, Minimax PSPACE, Protein"]
     end
 
-    subgraph MID["2. TẦNG TRUNG GIAN & RÚT GỌN (MID-END IR & TENSOR)"]
-        M1["crates/midend-egraph<br/>• egg E-Graph Equality Saturation<br/>• Tái sử dụng biến phụ Rosenberg O(1)<br/>• Bounded Saturation (Chống bẫy Nagata)"]
-        M2["crates/midend-tensor<br/>• Tensor-Train MPO Projector (Hạ bậc k ≥ 8 với 0 ancilla)<br/>• Matrix Product State MPS (Sign-Free Quantum TFIM)<br/>• Artin SOS Gram Matrix Cholesky Q ⪰ 0 (Hilbert 17)"]
-        M3["crates/midend-decompose<br/>• Dynamic Range Scaling (DRS)<br/>• Multilevel V-Cycle 8 tầng (HEM Coarsening)<br/>• Đẳng cấu năng lượng H_f ≡ H_c + ΔE_int<br/>• Sinh ma trận nén thưa IsingCsr"]
+    subgraph S_MID["2. TẦNG TRUNG GIAN & RÚT GỌN (MID-END IR & TENSOR)"]
+        M1["E-Graph Optimizer & Rosenberg<br/>Tối ưu Boolean, Tái dùng biến phụ O(1)"]
+        M2["Tensor-Train MPO & MPS<br/>Hạ bậc k lớn 0 biến phụ, MPS Sign-Free"]
+        M3["Decompose & V-Cycle 8 tầng<br/>HEM Coarsening, Ma trận nén IsingCsr"]
     end
 
-    subgraph BACK["3. TẦNG ĐỘNG LỰC HỌC VẬT LÝ (BACKEND PHYSICS)"]
-        B1["crates/backend-physics<br/>• CPU DST Engine: Tích phân Symplectic Euler tất định 100% từng bit<br/>• GPU wgpu Compute: 1.024 Replicas / 1 CommandEncoder trên Vulkan/DirectX<br/>• 3 Chế độ: dSB (Inelastic), bSB (Ballistic), cSB (Chaotic Ergodic)<br/>• Phân mảnh miền & Trao đổi biên Halo Exchange đa GPU<br/>• Động lực học Xoáy Hạt Biot-Savart & Giám sát Tiêu chuẩn BKM (Navier-Stokes)<br/>• Toán tử Lượng tử Berry-Keating Hermite đối xứng (Giả thuyết Riemann)<br/>• Lý thuyết Trường Lưới Wilson Loops & Đo lường Mass Gap (Yang-Mills)<br/>• Động lực học Replicator Entropic tiêu tán chu kỳ (Nash hỗn hợp)"]
+    subgraph S_BACK["3. TẦNG ĐỘNG LỰC HỌC VẬT LÝ (BACKEND PHYSICS)"]
+        B1["GPU wgpu & CPU DST Engine<br/>1.024 Replicas, 3 chế độ dSB / bSB / cSB"]
+        B2["Domain Decomposition & Halo Exchange<br/>Phân mảnh đa GPU đồng nhất bit-for-bit"]
+        B3["Hạt xoáy BKM, Wilson Gauge & Berry-Keating<br/>Navier-Stokes, Yang-Mills Mass Gap, Riemann"]
     end
 
-    subgraph VER["4. TẦNG KIỂM CHỨNG HÌNH THỨC & TIẾN HÓA (VERIFICATION)"]
-        V1["crates/verify-bridge<br/>• BitVectorDecoder: Ánh xạ Spin ±1 sang Bit 0/1<br/>• Vòng phản hồi kín ALM: Tăng phạt động thích nghi khử sạch vi phạm<br/>• Nash Saddle-Point Verifier: Xác minh điều kiện ổn định Dx = 0, Dy = 0<br/>• Bounded Model Checking (BMC) & Bất biến quy nạp xuất SMT-LIB2 cho Z3<br/>• LLL Lattice Reduction & Nhúng Kannan giải Diophantine có chặn (Hilbert 10)<br/>• Bất biến Dehn D(P) kiểm chứng cản trở phân cắt Scissors Congruence (Hilbert 3)<br/>• 2-Descent Selmer Group XOR-SAT qua khử Gauss F_2 cho Giả thuyết BSD"]
-        V2["crates/meta-evolve<br/>• Bộ tiến hóa di truyền (μ + λ) với Elitism & Gaussian Mutation<br/>• Tự động tổng hợp vector siêu tham số tối ưu θ* = (dt, a0, c0, ρ)"]
+    subgraph S_VER["4. TẦNG KIỂM CHỨNG HÌNH THỨC & TIẾN HÓA (VERIFICATION)"]
+        V1["BitVectorDecoder & Nash Verifier<br/>Giải mã spin nhị phân, Điểm yên ngựa Nash"]
+        V2["Vòng lặp kín ALM & SMT-LIB2 Prover<br/>Tăng phạt động khử vi phạm, Proof cho Z3"]
+        V3["Bộ giải Toán học Chuyên sâu<br/>LLL Diophantine, Dehn Invariant, Selmer BSD"]
+        E1["Meta-Evolve Engine<br/>Tiến hóa di truyền tối ưu siêu tham số"]
     end
 
-    subgraph CLI["5. GIAO DIỆN ĐIỀU KHIỂN DÒNG LỆNH"]
-        C1["crates/cli-bench<br/>• 21 Lệnh Benchmark chuyên sâu đo đạc vi giây chính xác<br/>• Tự động chạy toàn bộ suite, kiểm chứng 61/61 tests pass 100%"]
+    subgraph S_CLI["5. GIAO DIỆN ĐIỀU KHIỂN DÒNG LỆNH"]
+        C1["cli-bench Suite<br/>21 Lệnh Benchmark kiểm chứng toàn diện"]
     end
 
-    IN -->|"AST / Mệnh đề PUBO"| MID
+    F1 --> M1
+    F1 --> M2
     M1 --> M3
     M2 --> M3
-    M3 -->|"IsingCsr Nén Thưa"| BACK
-    BACK -->|"Trạng thái Spin s ∈ {-1, +1}"| VER
-    V1 -. "Vi phạm? Tăng phạt λ_k" .-> M3
-    V2 -. "Cung cấp siêu tham số θ*" .-> BACK
-    CLI ==> IN
-    CLI ==> BACK
-    CLI ==> VER
+    M3 -->|"Ma trận nén IsingCsr"| B1
+    B1 --> B2
+    B1 --> B3
+    B1 -->|"Trạng thái Spin"| V1
+    V1 --> V2
+    V2 -.->|"Tăng phạt thích nghi ALM"| M3
+    V1 --> V3
+    E1 -.->|"Siêu tham số tối ưu"| B1
+    C1 --> F1
+    C1 --> B1
+    C1 --> V3
 ```
 
 ---
@@ -256,7 +265,7 @@ cargo run --release -p cli-bench
 
 ## 9. GIẤY PHÉP & TÁC GIẢ
 
-Dự án được nghiên cứu, phát triển và tối ưu hóa chuyên sâu bởi **Mobifone AI Compiler Team**, phục vụ mục tiêu giải quyết các đại bài toán tối ưu hóa phức hợp siêu quy mô trong mạng viễn thông thế hệ mới, khoa học máy tính lý thuyết, mật mã học và an ninh mạng đối kháng.
+Dự án được nghiên cứu, phát triển và tối ưu hóa chuyên sâu phục vụ mục tiêu giải quyết các đại bài toán tối ưu hóa phức hợp siêu quy mô trong mạng viễn thông thế hệ mới, khoa học máy tính lý thuyết, mật mã học và an ninh mạng đối kháng.
 
 Phân phối chính thức theo giấy phép kép:
 * **MIT License** ([LICENSE-MIT](LICENSE-MIT))
