@@ -12,12 +12,11 @@
 
 ## MỤC LỤC
 1. [Nguyên Lý Vận Hành Cốt Lõi: Động Lực Học Không Gian Pha](#1-nguyên-lý-vận-hành-cốt-lõi-động-lực-học-không-gian-pha)
-2. [Sơ Đồ Kiến Trúc Hệ Thống](#2-sơ-đồ-kiến-trúc-hệ-thống)
-3. [Dòng Chảy Dữ Liệu (Data Flow)](#3-dòng-chảy-dữ-liệu-data-flow)
-4. [Hướng Dẫn Lập Trình Từng Bước (Code Examples)](#5-hướng-dẫn-lập-trình-từng-bước-code-examples)
-5. [Bảng Tra Cứu Toàn Diện 21 Lệnh Thực Thi CLI (`cli-bench`)](#6-bảng-tra-cứu-toàn-diện-21-lệnh-thực-thi-cli-cli-bench)
-6. [Cài Đặt & Hướng Dẫn Biên Dịch](#8-cài-đặt--hướng-dẫn-biên-dịch)
-7. [Giấy Phép & Tác Giả](#9-giấy-phép--tác-giả)
+2. [Dòng Chảy Dữ Liệu (Data Flow)](#3-dòng-chảy-dữ-liệu-data-flow)
+3. [Hướng Dẫn Lập Trình Từng Bước (Code Examples)](#5-hướng-dẫn-lập-trình-từng-bước-code-examples)
+4. [Bảng Tra Cứu Toàn Diện 21 Lệnh Thực Thi CLI (`cli-bench`)](#6-bảng-tra-cứu-toàn-diện-21-lệnh-thực-thi-cli-cli-bench)
+5. [Cài Đặt & Hướng Dẫn Biên Dịch](#8-cài-đặt--hướng-dẫn-biên-dịch)
+6. [Giấy Phép & Tác Giả](#9-giấy-phép--tác-giả)
 
 ---
 
@@ -39,72 +38,7 @@ $$\frac{dx_i}{dt} = y_i, \qquad \frac{dy_i}{dt} = -\Big(1 - a(t)\Big) x_i + c_0 
 
 ---
 
-## 2. SƠ ĐỒ KIẾN TRÚC HỆ THỐNG
-
-```mermaid
-flowchart TD
-    subgraph S_FRONT["1. TẦNG TIẾP NHẬN BÀI TOÁN (FRONTEND DSL)"]
-        F1["ProblemBuilder & QuantifiedProblemBuilder<br/>Ràng buộc logic, 3-SAT, Minimax PSPACE, Protein"]
-    end
-
-    subgraph S_MID["2. TẦNG TRUNG GIAN & RÚT GỌN (MID-END IR & TENSOR)"]
-        M1["E-Graph Optimizer & Rosenberg<br/>Tối ưu Boolean, Tái dùng biến phụ O(1)"]
-        M2["Tensor-Train MPO & MPS<br/>Hạ bậc k lớn 0 biến phụ, MPS Sign-Free"]
-        M3["Decompose & V-Cycle 8 tầng<br/>HEM Coarsening, Ma trận nén IsingCsr"]
-    end
-
-    subgraph S_BACK["3. TẦNG ĐỘNG LỰC HỌC VẬT LÝ (BACKEND PHYSICS)"]
-        B1["GPU wgpu & CPU DST Engine<br/>1.024 Replicas, 3 chế độ dSB / bSB / cSB"]
-        B2["Domain Decomposition & Halo Exchange<br/>Phân mảnh đa GPU đồng nhất bit-for-bit"]
-        B3["Hạt xoáy BKM, Wilson Gauge & Berry-Keating<br/>Navier-Stokes, Yang-Mills Mass Gap, Riemann"]
-    end
-
-    subgraph S_VER["4. TẦNG KIỂM CHỨNG HÌNH THỨC & TIẾN HÓA (VERIFICATION)"]
-        V1["BitVectorDecoder & Nash Verifier<br/>Giải mã spin nhị phân, Điểm yên ngựa Nash"]
-        V2["Vòng lặp kín ALM & SMT-LIB2 Prover<br/>Tăng phạt động khử vi phạm, Proof cho Z3"]
-        V3["Bộ giải Toán học Chuyên sâu<br/>LLL Diophantine, Dehn Invariant, Selmer BSD"]
-        E1["Meta-Evolve Engine<br/>Tiến hóa di truyền tối ưu siêu tham số"]
-    end
-
-    subgraph S_CLI["5. GIAO DIỆN ĐIỀU KHIỂN DÒNG LỆNH"]
-        C1["cli-bench Suite<br/>21 Lệnh Benchmark kiểm chứng toàn diện"]
-    end
-
-    F1 --> M1
-    F1 --> M2
-    M1 --> M3
-    M2 --> M3
-    M3 -->|"Ma trận nén IsingCsr"| B1
-    B1 --> B2
-    B1 --> B3
-    B1 -->|"Trạng thái Spin"| V1
-    V1 --> V2
-    V2 -.->|"Tăng phạt thích nghi ALM"| M3
-    V1 --> V3
-    E1 -.->|"Siêu tham số tối ưu"| B1
-    C1 --> F1
-    C1 --> B1
-    C1 --> V3
-```
-
----
-
-## 3. DANH MỤC PHÂN HỆ & THUẬT TOÁN NỀN TẢNG
-
-| STT | Crate | Module Trọng Tâm | Thuật Toán & Cơ Chế Toán Học | Kết Quả Thực Nghiệm Đo Được |
-| :---: | :--- | :--- | :--- | :---: |
-| **1** | `frontend-dsl` | `ProblemBuilder`<br/>`QuantifiedProblemBuilder`<br/>`HpProteinModel` | DSL biểu diễn logic (`ExactOne`, `Clause3Sat`, `And`, `Or`, `Xor`), bài toán đối kháng $\min_x \max_y H$, mô hình cuộn Protein 2D HP Lattice | Xây dựng bài toán Protein 150 biến trong **2.74 ms** |
-| **2** | `midend-egraph` | `PhysicsLang`<br/>`EGraphOptimizer`<br/>`RosenbergQuadratizer` | Bão hòa đẳng thức đại số Boolean ($x^2=x, s^2=1$), hạ bậc Rosenberg tái dùng biến phụ toàn cục $O(1)$, chống bẫy Nagata | Tối giản hóa 500 biểu thức proptest trong **0.11 ms** |
-| **3** | `midend-tensor` | `TensorTrainIsingProjector`<br/>`MatrixProductState`<br/>`PolynomialSosGramSolver` | Chiếu Fourier-Walsh Low-Rank hạ bậc $k \ge 8$ với 0 ancilla, mạng MPS xóa sạch Fermion Sign Problem, phân tích Artin SOS Cholesky $Q \succeq 0$ | Chiếu đa thức bậc 8 trong **4.89 ms**, co rút MPS trong **0.042 ms** |
-| **4** | `midend-decompose`| `DynamicRangeScaling`<br/>`MultilevelSolver`<br/>`HeavyEdgeMatching` | Chuẩn hóa tương tác [-1, +1], V-Cycle 8 tầng co cụm HEM bảo toàn đẳng cấu năng lượng $H_f \equiv H_c + \Delta E_{\text{int}}$, lật spin tham lam | Giải đồ thị 2.000 đỉnh (40.000 cạnh) trong **1.53 giây** |
-| **5** | `backend-physics` | `solve_dsb_cpu`<br/>`solve_dsb_gpu`<br/>`DomainDecomposer`<br/>`VortexSystem`<br/>`BerryKeatingOperator`<br/>`LatticeGaugeSystem` | Lõi CPU DST bit-for-bit, GPU wgpu 1.024 bản sao/1 CommandEncoder, 3 chế độ dSB/bSB/cSB, phân mảnh miền Halo Exchange, hạt xoáy BKM Navier-Stokes, Berry-Keating Riemann, Wilson loops Yang-Mills | Nạp 1.024 bản sao GPU trong **2.63s**, Xoáy BKM trong **0.031 ms**, Wilson loops trong **0.719 ms** |
-| **6** | `verify-bridge` | `BitVectorDecoder`<br/>`AugmentedLagrangianSolver`<br/>`InductiveProver`<br/>`LatticeBasis (LLL)`<br/>`PolyhedronKind (Dehn)`<br/>`EllipticCurve (Selmer)` | Giải mã nhị phân, vòng lặp phản hồi tăng phạt ALM, BMC & chứng minh quy nạp cho Z3, LLL giải Diophantine (H10), Bất biến Dehn (H3), 2-Descent Selmer XOR-SAT (BSD) | ALM sạch 0 vi phạm, LLL trong **0.033 ms**, Dehn trong **0.32 ms**, Selmer trong **0.002 ms** |
-| **7** | `meta-evolve` | `EvolutionaryStrategy`<br/>`SolverProfile`<br/>`GaussianMutation` | Thuật toán tiến hóa di truyền $(\mu + \lambda)$ tự động nhân giống, đột biến siêu tham số $(dt, a_0, c_0, \rho)$ tối ưu cho GPU dSB | Tiến hóa profile tối ưu chỉ sau 2 thế hệ trong **3.10 giây** |
-| **8** | `cli-bench` | `main.rs`<br/>21 Subcommands CLI | Giao diện điều khiển dòng lệnh tích hợp toàn bộ các Sprint, Grand Challenges và bài toán Hilbert/Millennium | 21/21 benchmarks chạy mượt mà, **61/61 tests pass 100%** |
-
----
-
-## 3. DÒNG CHẢY DỮ LIỆU (DATA FLOW)
+## 2. DÒNG CHẢY DỮ LIỆU (DATA FLOW)
 
 ```text
 [Yêu cầu bài toán thực tế]
@@ -135,9 +69,9 @@ Khi bài toán có ràng buộc khắt khe, nếu lần giải đầu tiên xu�
 
 ---
 
-## 4. HƯỚNG DẪN LẬP TRÌNH TỪNG BƯỚC (CODE EXAMPLES)
+## 3. HƯỚNG DẪN LẬP TRÌNH TỪNG BƯỚC (CODE EXAMPLES)
 
-### 4.1 Khai Báo Bài Toán Bằng Frontend DSL
+### 3.1 Khai Báo Bài Toán Bằng Frontend DSL
 ```rust
 use frontend_dsl::{ProblemBuilder, Constraint};
 use frontend_dsl::constraints::{ExactOne, Clause3Sat, And};
@@ -150,7 +84,7 @@ builder.add_constraint(Box::new(Clause3Sat::new(3, true, 4, false, 5, true)));
 builder.add_constraint(Box::new(And::new(6, 7, 8)));
 ```
 
-### 4.2 Khai Báo Bài Toán Đối Kháng Minimax (Game Theory / PSPACE)
+### 3.2 Khai Báo Bài Toán Đối Kháng Minimax (Game Theory / PSPACE)
 ```rust
 use frontend_dsl::QuantifiedProblemBuilder;
 
@@ -159,7 +93,7 @@ game.add_adversarial_interaction(0, 0, 1.5);
 let (ising, split) = game.build_unified_ising()?;
 ```
 
-### 4.3 Hạ Bậc Đa Thức Siêu Cao Bằng Tensor-Train MPO (0 Biến Phụ)
+### 3.3 Hạ Bậc Đa Thức Siêu Cao Bằng Tensor-Train MPO (0 Biến Phụ)
 ```rust
 use midend_tensor::{MpoPolynomialBuilder, TensorTrainIsingProjector};
 
@@ -169,7 +103,7 @@ let ising = TensorTrainIsingProjector::project_pubo_to_ising(&mpo_builder)?;
 // Tiết kiệm 100% biến phụ so với phương pháp Rosenberg!
 ```
 
-### 4.4 Chạy Mô Phỏng Rẽ Nhánh Trên GPU (wgpu Vulkan/DirectX)
+### 3.4 Chạy Mô Phỏng Rẽ Nhánh Trên GPU (wgpu Vulkan/DirectX)
 ```rust
 use backend_physics::{solve_dsb_gpu, DsbConfig, SolverPhysicsMode};
 
@@ -187,7 +121,7 @@ let result = solve_dsb_gpu(&ising, &config)?;
 println!("Năng lượng thấp nhất đạt được: {:.4}", result.best_energy);
 ```
 
-### 4.5 Khử Cơ Sở Lưới LLL Giải Diophantine Có Chặn (Hilbert 10)
+### 3.5 Khử Cơ Sở Lưới LLL Giải Diophantine Có Chặn (Hilbert 10)
 ```rust
 use verify_bridge::lll::solve_bounded_linear_diophantine_lll;
 
@@ -201,7 +135,7 @@ println!("Nghiệm nguyên trích xuất: {:?}", sol); // [0, 3, 2]
 
 ---
 
-## 5. BẢNG TRA CỨU TOÀN DIỆN 21 LỆNH THỰC THI CLI (`cli-bench`)
+## 4. BẢNG TRA CỨU TOÀN DIỆN 21 LỆNH THỰC THI CLI (`cli-bench`)
 
 Người dùng có thể trực tiếp thực thi, kiểm chứng từng thuật toán chuyên sâu thông qua file thực thi duy nhất `cli-bench`:
 
@@ -233,7 +167,7 @@ Người dùng có thể trực tiếp thực thi, kiểm chứng từng thuật
 | **--**| `cargo run --release -p cli-bench` | **CHẠY TOÀN BỘ BENCHMARK SUITE** | Tự động kích hoạt toàn bộ chuỗi 21 bài toán kiểm chuẩn từ đầu đến cuối |
 
 ---
-## 6. CÀI ĐẶT & HƯỚNG DẪN BIÊN DỊCH
+## 5. CÀI ĐẶT & HƯỚNG DẪN BIÊN DỊCH
 
 ### Yêu Cầu Môi Trường
 * **Rust Toolchain:** Phiên bản Rust $\ge 1.80$ (`stable-x86_64-pc-windows-gnu` hoặc `stable-x86_64-unknown-linux-gnu`).
@@ -263,7 +197,7 @@ cargo run --release -p cli-bench
 
 ---
 
-## 9. GIẤY PHÉP & TÁC GIẢ
+## 6. GIẤY PHÉP & TÁC GIẢ
 
 Dự án được nghiên cứu, phát triển và tối ưu hóa chuyên sâu phục vụ mục tiêu giải quyết các đại bài toán tối ưu hóa phức hợp siêu quy mô trong mạng viễn thông thế hệ mới, khoa học máy tính lý thuyết, mật mã học và an ninh mạng đối kháng.
 
