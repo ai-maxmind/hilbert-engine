@@ -1,0 +1,21 @@
+[package]
+name = "cli-bench"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+backend-physics = { path = "../backend-physics" }
+frontend-dsl = { path = "../frontend-dsl" }
+midend-decompose = { path = "../midend-decompose" }
+midend-egraph = { path = "../midend-egraph" }
+verify-bridge = { path = "../verify-bridge" }
+meta-evolve = { path = "../meta-evolve" }
+midend-tensor = { path = "../midend-tensor" }
+rand.workspace = true
+rand_chacha.workspace = true
+clap.workspace = true
+
+
+

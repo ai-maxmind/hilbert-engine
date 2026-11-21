@@ -1,0 +1,15 @@
+[package]
+name = "midend-egraph"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+egg.workspace = true
+thiserror.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

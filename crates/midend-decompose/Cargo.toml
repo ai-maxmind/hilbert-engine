@@ -1,0 +1,14 @@
+[package]
+name = "midend-decompose"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+backend-physics = { path = "../backend-physics" }
+midend-egraph = { path = "../midend-egraph" }
+petgraph.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
+thiserror.workspace = true

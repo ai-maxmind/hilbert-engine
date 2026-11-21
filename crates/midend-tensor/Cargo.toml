@@ -1,0 +1,12 @@
+[package]
+name = "midend-tensor"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+backend-physics = { path = "../backend-physics" }
+thiserror.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true

@@ -1,0 +1,16 @@
+[package]
+name = "verify-bridge"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+backend-physics = { path = "../backend-physics" }
+frontend-dsl = { path = "../frontend-dsl" }
+midend-egraph = { path = "../midend-egraph" }
+midend-decompose = { path = "../midend-decompose" }
+thiserror.workspace = true
+rand.workspace = true
+rand_chacha.workspace = true
+pollster.workspace = true

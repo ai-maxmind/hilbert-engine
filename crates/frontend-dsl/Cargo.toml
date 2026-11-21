@@ -1,0 +1,14 @@
+[package]
+name = "frontend-dsl"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+midend-egraph = { path = "../midend-egraph" }
+backend-physics = { path = "../backend-physics" }
+thiserror.workspace = true
+
+[dev-dependencies]
+midend-decompose = { path = "../midend-decompose" }

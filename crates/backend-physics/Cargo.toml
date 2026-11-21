@@ -1,0 +1,15 @@
+[package]
+name = "backend-physics"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+
+[dependencies]
+rand.workspace = true
+rand_chacha.workspace = true
+bytemuck.workspace = true
+thiserror.workspace = true
+wgpu.workspace = true
+pollster.workspace = true
+
